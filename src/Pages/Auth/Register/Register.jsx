@@ -15,6 +15,7 @@ export default function Register() {
             email: '',
             city: '',
             date: '',
+            career: '',
             education: '',
             password: '',
             confirmPassword: ''
@@ -31,49 +32,48 @@ export default function Register() {
         },
 
         onSubmit: async (values) => {
-        try {
-            // فقط اسم فیلد birth_date رو چک کن
-            const dataToSend = {
-            email: values.email,
-            password: values.password,
-            firstname: values.firstname,
-            lastname: values.lastname,
-            city: values.city,
-            birth_date: values.date,  // ← همون date خودت رو بفرست
-            gender: gender === '-1' ? 'other' : gender,
-            role: modeRegister,
-            education: modeRegister === 'teacher' ? values.education : ''
+            try {
+                const dataToSend = {
+                    email: values.email,
+                    password: values.password,
+                    firstname: values.firstname,
+                    lastname: values.lastname,
+                    city: values.city,
+                    birth_date: values.date,
+                    gender: gender === '-1' ? 'other' : gender,
+                    role: modeRegister,
+                    education: modeRegister === 'teacher' ? values.education : ''
+                }
+
+                console.log('📤 ارسال:', dataToSend)
+
+                const response = await fetch('http://localhost:8000/api/auth/register/', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(dataToSend)
+                })
+
+                const data = await response.json()
+
+                if (response.ok) {
+                    swal({
+                        icon: 'success',
+                        title: 'ثبت‌نام موفق',
+                        buttons: 'ادامه'
+                    }).then(() => navigate('/verify-user'))
+                } else {
+                    swal({
+                        icon: 'error',
+                        title: 'خطا',
+                        text: data.error || 'مشکلی پیش اومد'
+                    })
+                }
+            } catch (error) {
+                swal({
+                    icon: 'error',
+                    title: 'خطا در ارتباط با سرور'
+                })
             }
-            
-            console.log('📤 ارسال:', dataToSend)
-            
-            const response = await fetch('http://localhost:8000/api/auth/register/', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(dataToSend)
-            })
-            
-            const data = await response.json()
-            
-            if (response.ok) {
-            swal({
-                icon: 'success',
-                title: 'ثبت‌نام با موفقیت انجام شد',
-                buttons: 'ورود'
-            }).then(() => navigate('/login'))
-            } else {
-            swal({
-                icon: 'error',
-                title: 'خطا',
-                text: data.error || 'مشکلی پیش اومد'
-            })
-            }
-        } catch (error) {
-            swal({
-            icon: 'error',
-            title: 'خطا در ارتباط با سرور'
-            })
-        }
         }
     })
 
@@ -142,15 +142,24 @@ export default function Register() {
                             placeholder="تاریخ تولد"
                         />
 
+                        <input
+                            type="text"
+                            name="education"
+                            value={form.values.education}
+                            onChange={form.handleChange}
+                            onBlur={form.handleBlur}
+                            placeholder="تحصیلات"
+                        />
+
                         {modeRegister === 'teacher' ? (
                             <>
                                 <input
                                     type="text"
                                     name="education"
-                                    value={form.values.education}
+                                    value={form.values.career}
                                     onChange={form.handleChange}
                                     onBlur={form.handleBlur}
-                                    placeholder="تحصیلات"
+                                    placeholder="سابقه کاری"
                                 />
                             </>
                         ) : null}
@@ -172,6 +181,7 @@ export default function Register() {
                             onBlur={form.handleBlur}
                             placeholder="تکرار رمز عبور"
                         />
+
                     </main>
 
                     <section>
@@ -184,7 +194,6 @@ export default function Register() {
                             <option value={'-1'}>لطفا جنسیت خود را انتخاب کنید</option>
                             <option value={'man'}>مرد</option>
                             <option value={'woman'}>زن</option>
-                            <option value={'other'}>سفارشی...</option>
                         </select>
 
                         <input
@@ -199,7 +208,11 @@ export default function Register() {
                         </label>
                     </section>
 
-                    <button className={`form-btn ${isSecurity ? 'cursor-pointer' : 'opacity-[0.5]'}`} disabled={!isSecurity} type="submit">ثبت نام</button>
+                    <div className={'w-full flex justify-end items-end'}>
+                        <button className={`form-btn ${isSecurity ? 'cursor-pointer' : 'opacity-[0.5]'}`}
+                                disabled={!isSecurity} type="submit">ثبت نام
+                        </button>
+                    </div>
 
                     <div className="drops">
                         <div className="drop drop-1"></div>
