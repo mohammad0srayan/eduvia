@@ -22,22 +22,44 @@ export default function Login () {
             return errors
         },
 
-        onSubmit: (values) => {
-            if (values.email && values.password) {
-                swal({
-                    icon: 'success',
-                    title: 'با موفقیت وارد شدید',
-                    buttons: 'OK'
-                })
-                console.log(values)
-                navigate('/')
+        onSubmit: async (values) => {
+        try {
+            const response = await fetch('http://localhost:8000/api/auth/login/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                email: values.email,
+                password: values.password
+            })
+            })
+            
+            const data = await response.json()
+            
+            if (response.ok) {
+            // فقط id و email رو ذخیره کن
+            localStorage.setItem('user', JSON.stringify({
+                id: data.user.id,
+                email: data.user.email
+            }))
+            
+            swal({
+                icon: 'success',
+                title: 'ورود موفقیت‌آمیز',
+                buttons: 'ورود'
+            }).then(() => navigate('/'))
             } else {
-                swal({
-                    icon: 'warning',
-                    title: 'لطفا اطلاعات خواسته شده را تکمیل کنید',
-                    buttons: 'OK'
-                })
+            swal({
+                icon: 'error',
+                title: 'خطا',
+                text: data.error || 'ایمیل یا رمز عبور اشتباه است'
+            })
             }
+        } catch (error) {
+            swal({
+            icon: 'error',
+            title: 'خطا در ارتباط با سرور'
+            })
+        }
         }
     })
 

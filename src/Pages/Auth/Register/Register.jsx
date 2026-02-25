@@ -30,22 +30,50 @@ export default function Register() {
             return errors
         },
 
-        onSubmit: (values) => {
-            if (values.firstname && values.lastname && values.email && values.password && values.confirmPassword && values.date && values.city) {
-                swal({
-                    icon: 'success',
-                    title: 'اطلاعات با موفقیت ثبت شد',
-                    buttons: 'متوجه شدم'
-                })
-                console.log(values)
-                navigate('/')
-            } else {
-                swal({
-                    icon: 'warning',
-                    title: 'لطفا اطلاعات خواسته شده را تکمیل کنید',
-                    buttons: 'Ok'
-                })
+        onSubmit: async (values) => {
+        try {
+            // فقط اسم فیلد birth_date رو چک کن
+            const dataToSend = {
+            email: values.email,
+            password: values.password,
+            firstname: values.firstname,
+            lastname: values.lastname,
+            city: values.city,
+            birth_date: values.date,  // ← همون date خودت رو بفرست
+            gender: gender === '-1' ? 'other' : gender,
+            role: modeRegister,
+            education: modeRegister === 'teacher' ? values.education : ''
             }
+            
+            console.log('📤 ارسال:', dataToSend)
+            
+            const response = await fetch('http://localhost:8000/api/auth/register/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(dataToSend)
+            })
+            
+            const data = await response.json()
+            
+            if (response.ok) {
+            swal({
+                icon: 'success',
+                title: 'ثبت‌نام با موفقیت انجام شد',
+                buttons: 'ورود'
+            }).then(() => navigate('/login'))
+            } else {
+            swal({
+                icon: 'error',
+                title: 'خطا',
+                text: data.error || 'مشکلی پیش اومد'
+            })
+            }
+        } catch (error) {
+            swal({
+            icon: 'error',
+            title: 'خطا در ارتباط با سرور'
+            })
+        }
         }
     })
 
